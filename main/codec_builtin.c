@@ -37,6 +37,7 @@ ASTERISK_FILE_VERSION(__FILE__, "$Revision$")
 #include "asterisk/format.h"
 #include "asterisk/format_cache.h"
 #include "asterisk/frame.h"
+#include <opus/opus.h>
 
 enum frame_type {
 	TYPE_HIGH,     /* 0x0 */
@@ -103,6 +104,12 @@ static struct ast_codec g723 = {
 	.samples_count = g723_samples,
 	.get_length = g723_length,
 };
+
+static int opus_samples(struct ast_frame *frame)
+{
+	return opus_packet_get_nb_samples(frame->data.ptr, frame->datalen, 48000);
+}
+
 
 static int none_samples(struct ast_frame *frame)
 {
@@ -707,6 +714,7 @@ static struct ast_codec opus = {
 	.maximum_ms = 60,
 	.default_ms = 20,
 	.minimum_bytes = 10,
+	.samples_count = opus_samples,
 };
 
 static struct ast_codec jpeg = {

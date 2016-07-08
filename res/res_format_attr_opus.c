@@ -26,7 +26,6 @@
 /*** MODULEINFO
 	<support_level>core</support_level>
  ***/
-
 #include "asterisk.h"
 
 ASTERISK_FILE_VERSION(__FILE__, "$Revision$")
@@ -34,21 +33,16 @@ ASTERISK_FILE_VERSION(__FILE__, "$Revision$")
 #include "asterisk/module.h"
 #include "asterisk/format.h"
 
-/*!
- * \brief Opus attribute structure.
- *
- * \note http://tools.ietf.org/html/draft-ietf-payload-rtp-opus-00.
- */
 struct opus_attr {
-	unsigned int maxbitrate;	        /* Default 64-128 kb/s for FB stereo music */
-	unsigned int maxplayrate	        /* Default 48000 */;
-	unsigned int minptime;	            /* Default 3, but it's 10 in format.c */
-	unsigned int stereo;	            /* Default 0 */
-	unsigned int cbr;	                /* Default 0 */
-	unsigned int fec;	                /* Default 0 */
-	unsigned int dtx;	                /* Default 0 */
-	unsigned int spropmaxcapturerate;	/* Default 48000 */
-	unsigned int spropstereo;	        /* Default 0 */
+        unsigned int maxbitrate;                /* Default 64-128 kb/s for FB stereo music */
+        unsigned int maxplayrate                /* Default 48000 */;
+        unsigned int minptime;              /* Default 3, but it's 10 in format.c */
+        unsigned int stereo;                /* Default 0 */
+        unsigned int cbr;                       /* Default 0 */
+        unsigned int fec;                       /* Default 0 */
+        unsigned int dtx;                       /* Default 0 */
+        unsigned int spropmaxcapturerate;       /* Default 48000 */
+        unsigned int spropstereo;               /* Default 0 */
 };
 
 static struct opus_attr default_opus_attr = {
@@ -67,7 +61,7 @@ static void opus_destroy(struct ast_format *format)
 static int opus_clone(const struct ast_format *src, struct ast_format *dst)
 {
 	struct opus_attr *original = ast_format_get_attribute_data(src);
-	struct opus_attr *attr = ast_calloc(1, sizeof(*attr));
+	struct opus_attr *attr = ast_calloc(1, sizeof(struct opus_attr));
 
 	if (!attr) {
 		return -1;
@@ -75,8 +69,7 @@ static int opus_clone(const struct ast_format *src, struct ast_format *dst)
 
 	if (original) {
 		*attr = *original;
-	}
-
+	} 
 	ast_format_set_attribute_data(dst, attr);
 
 	return 0;
@@ -87,7 +80,7 @@ static struct ast_format *opus_parse_sdp_fmtp(const struct ast_format *format, c
 	struct ast_format *cloned;
 	struct opus_attr *attr;
 	const char *kvp;
-	unsigned int val;
+	unsigned int val; 
 
 	cloned = ast_format_clone(format);
 	if (!cloned) {
@@ -107,10 +100,7 @@ static struct ast_format *opus_parse_sdp_fmtp(const struct ast_format *format, c
 	if ((kvp = strstr(attributes, "maxaveragebitrate")) && sscanf(kvp, "maxaveragebitrate=%30u", &val) == 1) {
 		attr->maxbitrate = val;
 	}
-	if ((kvp = strstr(attributes, " stereo")) && sscanf(kvp, " stereo=%30u", &val) == 1) {
-		attr->stereo = val;
-	}
-	if ((kvp = strstr(attributes, ";stereo")) && sscanf(kvp, ";stereo=%30u", &val) == 1) {
+	if ((kvp = strstr(attributes, "stereo")) && sscanf(kvp, "stereo=%30u", &val) == 1) {
 		attr->stereo = val;
 	}
 	if ((kvp = strstr(attributes, "sprop-stereo")) && sscanf(kvp, "sprop-stereo=%30u", &val) == 1) {
@@ -125,14 +115,12 @@ static struct ast_format *opus_parse_sdp_fmtp(const struct ast_format *format, c
 	if ((kvp = strstr(attributes, "usedtx")) && sscanf(kvp, "usedtx=%30u", &val) == 1) {
 		attr->dtx = val;
 	}
-
 	return cloned;
 }
 
 static void opus_generate_sdp_fmtp(const struct ast_format *format, unsigned int payload, struct ast_str **str)
 {
 	struct opus_attr *attr = ast_format_get_attribute_data(format);
-
 	if (!attr) {
 		return;
 	}
@@ -191,10 +179,11 @@ static struct ast_format *opus_getjoint(const struct ast_format *format1, const 
 	 * to receive with FEC, it may be a waste of bandwidth. */
 	attr_res->fec = attr1->fec && attr2->fec ? 1 : 0;
 
-	/* Only do stereo if both sides want it.  If a peer specifically requests not
-	 * to receive stereo signals, it may be a waste of bandwidth. */
-	attr_res->stereo = attr1->stereo && attr2->stereo ? 1 : 0;
-
+	if (attr1->stereo || attr2->stereo) {  
+			attr_res->stereo = 1;
+			attr_res->spropstereo = 1;
+	}
+	
 	/* FIXME: do we need to join other attributes as well, e.g., minptime, cbr, etc.? */
 
 	return jointformat;

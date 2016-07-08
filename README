@@ -1,3 +1,16 @@
+Extensions of Asterisk for 3D-Audio telephone conferences.
+Binaural rendering is handled by the modified conference bridge of Asterisk.
+
+Asterisk was modified 
+a) support stereo,
+b) has support for OPUS (required for stereo transmission), and
+c) uses convolution for binaural synthesis
+
+HRTF are included (taken from the SoundScapeRender) and compiled via c-header files.
+
+For more information see http://www.steakconferencing.de
+
+
 ===============================================================================
 ===                     The Asterisk(R) Open Source PBX
 ===

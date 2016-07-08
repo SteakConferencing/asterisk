@@ -263,9 +263,10 @@ static void get_codecs(struct ast_sip_session *session, const struct pjmedia_sdp
 				struct ast_format *format_parsed;
 
 				ast_copy_pj_str(fmt_param, &fmtp.fmt_param, sizeof(fmt_param));
-
+				
 				format_parsed = ast_format_parse_sdp_fmtp(format, fmt_param);
 				if (format_parsed) {
+					ast_format_set_attribute_data(format, ast_format_get_attribute_data(format_parsed));
 					ast_rtp_codecs_payload_replace_format(codecs, num, format_parsed);
 					ao2_ref(format_parsed, -1);
 				}
@@ -387,8 +388,12 @@ static pjmedia_sdp_attr* generate_rtpmap_attr(struct ast_sip_session *session, p
 	rtpmap.pt = media->desc.fmt[media->desc.fmt_count - 1];
 	rtpmap.clock_rate = ast_rtp_lookup_sample_rate2(asterisk_format, format, code);
 	pj_strdup2(pool, &rtpmap.enc_name, ast_rtp_lookup_mime_subtype2(asterisk_format, format, code, options));
-	rtpmap.param.slen = 0;
-	rtpmap.param.ptr = NULL;
+	if (!pj_stricmp2(&rtpmap.enc_name, "opus")) {
+		 pj_cstr(&rtpmap.param, "2");
+	} else {
+		pj_cstr(&rtpmap.param, NULL);
+	}
+
 
 	pjmedia_sdp_rtpmap_to_attr(pool, &rtpmap, &attr);
 
